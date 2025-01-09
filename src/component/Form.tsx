@@ -1,14 +1,17 @@
-import { useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod/dist/zod.js";
 import { FieldValues, useForm } from "react-hook-form";
 import { z } from "zod";
+
+const categories = ["Groceries", "Utilities", "Entertainment"] as const;
 
 const schema = z.object({
   description: z
     .string()
     .min(3, { message: "Description should be at least 3 characters." }),
   amount: z.number({ invalid_type_error: "Amount is required." }),
-  category: z.string().min(1, { message: "Category is required." }),
+  category: z.enum(categories, {
+    errorMap: () => ({ message: "Category is required." }),
+  }),
 });
 
 type FormData = z.infer<typeof schema>;
@@ -17,15 +20,12 @@ const Form = () => {
   const {
     register,
     handleSubmit,
-    formState: { errors, isValid },
+    formState: { errors },
   } = useForm<FormData>({ resolver: zodResolver(schema) });
 
   const onSubmit = (data: FieldValues) => {
     console.log(data);
   };
-
-  const [selectedCategory, setSelectedCategory] = useState("");
-  const categories = ["Groceries", "Utilities", "Entertainment"];
 
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
@@ -63,14 +63,8 @@ const Form = () => {
         <label htmlFor="category" className="form-label">
           Category
         </label>
-        <select
-          {...register("category")}
-          className="form-select"
-          id="category"
-          value={selectedCategory}
-          onChange={(e) => setSelectedCategory(e.target.value)}
-        >
-          <option value=""></option>
+        <select {...register("category")} id="category" className="form-select">
+          <option value="">Select category</option>
           {categories.map((category) => (
             <option key={category} value={category}>
               {category}
@@ -81,7 +75,7 @@ const Form = () => {
           <p className="text-danger">{errors.category.message}</p>
         )}
       </div>
-      <button disabled={!isValid} type="submit" className="btn btn-primary">
+      <button type="submit" className="btn btn-primary">
         Submit
       </button>
     </form>
