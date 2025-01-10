@@ -64,7 +64,7 @@ const Form = () => {
           Category
         </label>
         <select {...register("category")} id="category" className="form-select">
-          <option value="">Select category</option>
+          <option value=""></option>
           {categories.map((category) => (
             <option key={category} value={category}>
               {category}
