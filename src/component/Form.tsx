@@ -1,14 +1,17 @@
 import { zodResolver } from "@hookform/resolvers/zod/dist/zod.js";
-import { FieldValues, useForm } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { z } from "zod";
-
-const categories = ["Groceries", "Utilities", "Entertainment"] as const;
+import categories from "../categories";
 
 const schema = z.object({
   description: z
     .string()
-    .min(3, { message: "Description should be at least 3 characters." }),
-  amount: z.number({ invalid_type_error: "Amount is required." }),
+    .min(3, { message: "Description should be at least 3 characters." })
+    .max(50),
+  amount: z
+    .number({ invalid_type_error: "Amount is required." })
+    .min(0.01)
+    .max(100_000),
   category: z.enum(categories, {
     errorMap: () => ({ message: "Category is required." }),
   }),
@@ -16,19 +19,25 @@ const schema = z.object({
 
 type FormData = z.infer<typeof schema>;
 
-const Form = () => {
+interface Props {
+  onSubmit: (data: FormData) => void;
+}
+
+const Form = ({ onSubmit }: Props) => {
   const {
     register,
     handleSubmit,
+    reset,
     formState: { errors },
   } = useForm<FormData>({ resolver: zodResolver(schema) });
 
-  const onSubmit = (data: FieldValues) => {
-    console.log(data);
-  };
-
   return (
-    <form onSubmit={handleSubmit(onSubmit)}>
+    <form
+      onSubmit={handleSubmit((data) => {
+        onSubmit(data);
+        reset();
+      })}
+    >
       <div className="mb-3">
         <label htmlFor="description" className="form-label">
           Description
@@ -43,7 +52,6 @@ const Form = () => {
           <p className="text-danger">{errors.description.message}</p>
         )}
       </div>
-
       <div className="mb-3">
         <label htmlFor="Amount" className="form-label">
           Amount
@@ -58,7 +66,6 @@ const Form = () => {
           <p className="text-danger">{errors.amount.message}</p>
         )}
       </div>
-
       <div className="mb-3">
         <label htmlFor="category" className="form-label">
           Category
